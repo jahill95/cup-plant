@@ -1,0 +1,358 @@
+---
+title: "Cup Plant Data"
+author: "Jacob Hill"
+date: "December 17, 2016"
+output: word_document
+---
+# Read the cup plant data file into Rstudio. Create factors for richness and time treatments.
+
+```{r}
+cratio <- read.csv("C:/Users/Jacob Hill/Documents/HonorsProject/Datasets/cup-plant/GitHub/HonorsProject_FEEL_Tidied_Labeled_2016.csv")
+cratio
+
+cratio$r <- as.factor(cratio$rich)
+cratio$d <- as.factor(cratio$date)
+cratio$p <- as.factor(cratio$plot)
+cratio
+```
+
+# Initial Graphical Analysis:
+
+Produce a scatterplot matrix to examine correlations of all explanatory variables with foliar C:N and with each other.Do sampling date and planted richness have any obvious association with foliar C:N? Are there any Simpson's Diversity relationships? Are there any non-linear relationships?
+```{r}
+# C:N?
+
+pairs(cratio[ , c(1,4,5,6,7)],labels=c("C:N","Richness", "Time", "Plot", "Wet Weight"),
+     panel=function(x,y){panel.smooth(x,y) 
+     abline(lsfit(x,y),lty=2) })
+
+pairs(cratio[ , c(1,8,9,10,11,12)],labels=c("C:N","Dry Weight", "% Moisture","Diversity","Stem Density","Average Shoot Height"),
+     panel=function(x,y){panel.smooth(x,y) 
+     abline(lsfit(x,y),lty=2) })
+
+# Diversity?
+
+pairs(cratio[ , c(10,1,4,5,6,7)],labels=c("Diversity","C:N","Richness", "Time", "Plot", "Wet Weight"),
+     panel=function(x,y){panel.smooth(x,y) 
+     abline(lsfit(x,y),lty=2) })
+
+pairs(cratio[ , c(10,8,9,11,12)],labels=c("Diversity","Dry Weight", "% Moisture","Stem Density","Average Shoot Height"),
+     panel=function(x,y){panel.smooth(x,y) 
+     abline(lsfit(x,y),lty=2) })
+
+treg <- lm(cn ~ sdi, data=time1)
+summary(treg)
+anova(treg)
+
+treg2 <- lm(cn ~ sdi, data=time2)
+summary(treg2)
+anova(treg2)
+
+treg3 <- lm(cn ~ sdi, data=time3)
+summary(treg3)
+anova(treg3)
+
+plot(cn ~ sdi, data=cratio,
+        xlab = "Simpson's Diversity",
+        ylab = "C:N", main="Cup Plant Leaf Stoichiometry")
+abline(dreg)
+
+# Log transform C:N to see if a better fit is obtained.
+
+cratio$logcn <- log(cratio$cn)
+dlogreg <- lm(logcn ~ sdi, data=cratio)
+summary(dlogreg)
+anova(dlogreg)
+
+plot(logcn ~ sdi, data=cratio,
+        xlab = "Simpson's Diversity",
+        ylab = "Log(C:N)", main="Cup Plant Leaf Stoichiometry")
+abline(dlogreg)
+
+# The log transformation doesn't provide a better fit.
+```
+
+# Conclusion: SDI may be important in the first sampling period (pre-flowering) as a simple linear regression yielded p = .08. The other two sampling periods were not significantly associated with SDI.
+Are any of the individual explanatory variables significantly linearly correlated with foliar C:N, with diversity, with each other?
+
+round(cor(cratio[ , c(1,4,5,6,7,8,9,10,11,12)],4)
+library(biotools)
+multcor.test(cor(cratio[ , c(1,4,5,6,7,8,9,10,11,12)]), n=nrow(cratio))
+
+Produce a profile plot with planted richness on the x-axis and C:N on the y-axis.
+
+```{r}
+# Compute a matrix of mean responses for all combinations 
+# of sampling dates and planted richness. Make a profile plot.
+
+means <- tapply(cratio$cn,
+          list(cratio$rich,cratio$date), mean)
+means
+
+# Construct a matrix of standard deviations
+
+stdev <- tapply(cratio$cn,
+          list(cratio$rich,cratio$date), sd)
+stdev
+
+par(cex=1.0,lwd=3, mex=1.0, mkh=.80, cex.axis=0.8, cex.lab=1.0 )
+x.axis <- unique(cratio$rich)
+matplot( c(2, 12), c(13, 23),
+     type="n", xlab="Richness",  
+     ylab="C:N", 
+     main= "Foliar C:N Across Richness over Time") 
+
+matlines(x.axis,means,type='l', lty=c(1,3,4),lwd=2)     
+
+# Plot symbols for the sample means
+
+matpoints(x.axis,means, pch=c(2,5,16)) 
+
+legend(1.0,15, legend=c('Pre-Flowering','Flowering','Senescence'), lwd=2,
+          cex=0.8,lty=c(1,3,4),pch=c(2,5,16), col=cratio$date, bty='n')
+
+# A clear difference between the mean average foliar C:N is observed between pre-flowering sampling time and the flowering and post-flowering sampling periods. However, a difference between flowering and post flowering C:N is not evident. Ignoring sampling date, planted richness grading from 2 to 3 to 5 to 12 does not reveal a clear trend. Perhaps there is a slight increase in C:N with planted richness, but likely not enough to be detected. Below, I will test these relationships with an ANOVA test and Tukey multiple comparisons procedure.
+```
+
+Produce a profile plot with time on the x-axis and C:N on the y-axis with lines separated according to plot.
+
+```{r}
+# Compute a matrix of mean responses for all combinations 
+# of sampling dates and plot id. Make a profile plot.
+
+meansp <- tapply(cratio$cn,
+          list(cratio$d,cratio$p), mean)
+meansp
+
+# Construct a matrix of standard deviations
+
+stdevp <- tapply(cratio$cn,
+          list(cratio$d,cratio$p), sd)
+stdevp
+
+par(cex=1.0,lwd=3, mex=1.0, mkh=.80, cex.axis=0.8, cex.lab=1.0 )
+x.axis <- unique(cratio$d)
+matplot( c(1, 3), c(13, 23),
+     type="n", xlab="Growth Period",  
+     ylab="C:N", 
+     main= "Foliar C:N Across Growth Period per Plot") 
+
+matlines(x.axis,meansp,type='l', lty=c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4),lwd=1)     
+
+# Plot symbols for the sample means
+
+matpoints(x.axis,meansp, pch=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)) 
+
+legend(1.0,24, legend=c('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P'), lwd=1,ncol=4,title='Plot',
+          cex=0.8,lty=c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4),pch=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16), col=cratio$date, bty='n')
+
+```
+
+
+Did removing leaves affect stem growth? Compare slopes of different measurement clusters.
+
+```{r}
+# Compute a matrix of mean responses for all combinations 
+# of sampling dates and planted richness. 
+
+meansf <- tapply(cratio$fheight,
+          list(cratio$rich,cratio$date), mean)
+meansf
+
+meanss <- tapply(cratio$sheight,
+          list(cratio$rich,cratio$date), mean)
+meanss
+
+meanst <- tapply(cratio$theight,
+          list(cratio$rich,cratio$date), mean)
+meanst
+
+meansc <- tapply(cratio$cheight,
+          list(cratio$rich,cratio$date), mean)
+meansc
+
+stdevc <- tapply(cratio$cheight,
+          list(cratio$rich,cratio$date), sd)
+stdevc
+
+freg <- lm(cratio$fheight ~ cratio$date)
+summary(freg)
+
+sreg <- lm(cratio$sheight ~ cratio$date)
+summary(sreg)
+
+treg <- lm(cratio$theight ~ cratio$date)
+summary(treg)
+
+creg <- lm(cratio$cheight ~ cratio$date)
+summary(creg)
+
+# It doesn't appear as though leaf harvest had any effect on stem growth over the summer, but no statistical comparisons performed as of yet.
+```
+
+
+# Model Assumptions
+
+Assume independent random sampling of leaves based upon stratified quadrat leaf  sampling procedure, although the repeated measures may be a problem. How should I deal with this? Consult an expert.
+
+Construct box plots to check for homogeneous variances of C:N at different dates and at different richness levels.Also check using Levene's test.
+
+```{r}
+boxplot(cn ~ date, data=cratio,  
+      ylab= "C:N",
+      names=c("Pre-Flowering","Flowering","Senescence"),
+      main= "Foliar C:N Across Growing Season")
+
+ library(DescTools)
+  LeveneTest(cratio$cn, cratio$date)
+
+boxplot(cn ~ rich, data=cratio,  
+      ylab= "C:N",
+      names=c("2 Species","3 Species","5 Species","12 Species"),
+      main= "Foliar C:N Across Planted Community Richness")
+
+ library(DescTools)
+  LeveneTest(cratio$cn, cratio$rich)
+  
+# Assumptions of homogeneous variance appears to be satisfied
+
+```
+
+Check for assumption of sampling from normally distributed population of C:N foliar chemistries. Use a histogram of residuals, Shapiro-Wilk test. 
+
+```{r}
+ hist( cratio$cn, freq=T,
+         ylab="Count", xlab="C:N", 
+         main="Foliar C:N")
+   shapiro.test(cratio$cn)
+
+# Foliar C:N appears to be sampled from a normally distributed population.
+```
+
+# ANOVA Models
+
+Fit a linear model with main effects and interaction effects on foliar C:N. 
+Compute both sets of Type I sums of squares.
+
+```{r}
+options(contrasts=c('contr.treatment','contr.ploy'))
+
+lm.int <- lm(cn~r*d, data=cratio)
+summary(lm.int)
+anova(lm.int)
+```
+
+Result: there is no significant main effect of planted richness or interaction effect, but there is a significant time effect.
+
+Fit a linear mixed effects anova with plot as random effect 
+
+```{r}
+library(lme4)
+cnmixed <- lmer(cn ~ r+ (1|p) + r*d, data=cratio)
+summary(cnmixed)
+anova(cnmixed)
+```
+
+Fit a linear model with additive effects.
+
+```{r}
+lm.add <- lm(cn~r+d, data=cratio)
+summary(lm.add)
+anova(lm.add)
+
+model.matrix(lm.add)
+
+plot(lm.add)
+```
+
+Check model assumptions.  First look at residual plots
+
+```{r}
+par(mfrow=c(2,2))
+plot(lm.int)
+shapiro.test(lm.int$residuals)
+par(mfrow=c(1,1))
+
+# Model assumption of normal distribution is satisfied.
+
+```
+
+Run the Brown-Forsythe test
+
+
+```{r}
+library(DescTools)
+LeveneTest(cn ~ r*d , data=cratio)
+
+# Model assumption of homegenous variance appears to be satsified.
+```
+
+
+Apply the HSD method to the Variety means and to the nitrogen means
+
+```{r}
+  TukeyHSD(cn1 <- aov(cn~r+d+r*d, data=cratio), "r", 
+        ordered = FALSE, conf.level = 0.95)
+
+  TukeyHSD(cn1 <- aov(cn~r+d+r*d, data=cratio), "d", 
+        ordered = TRUE, conf.level = 0.95)
+
+ # Apply the HSD procedure ot the C:N means for the 4x3
+ # combinations of factor levels.  First create a factor
+ # to distinguish the 12=4x3 combinations.
+
+    cratio$rd <- factor(1000*cratio$date + cratio$rich)
+    TukeyHSD(cn2 <- aov(cn~rd, data=cratio), "rd", 
+        ordered = TRUE, conf.level = 0.95)
+```
+
+# For MLR and other considerations, separate the frame by sampling period into three sets. This way we can look at diversity effects at each level of time and also obtain explanatory MLR models at each time, and determine the importance of measured diversity and the other covariates. 
+
+time1 <- cratio[1:16,]
+
+time2 <- cratio[17:32,]
+
+time3 <- cratio[33:48,]
+
+```{r}
+pairs(time1[ , c(1,9,10,11,12)],labels=c("C:N","% Moisture", "SDI", "ISD (stems/m^2", "Cumulative Avg Shoot height (cm)"),
+     panel=function(x,y){panel.smooth(x,y) 
+     abline(lsfit(x,y),lty=2) })
+
+round(cor(time1[ , c(1,9,10,11,12)],4)
+library(biotools)
+multcor.test(cor(time1[ , c(1,9,10,11,12)]), n=nrow(time1))
+
+pairs(time2[ , c(1,9,10,11,12)],labels=c("C:N","% Moisture", "SDI", "ISD (stems/m^2", "Cumulative Avg Shoot height (cm)"),
+     panel=function(x,y){panel.smooth(x,y) 
+     abline(lsfit(x,y),lty=2) })
+
+round(cor(time2[ , c(1,9,10,11,12)],4)
+library(biotools)
+multcor.test(cor(time2[ , c(1,9,10,11,12)]), n=nrow(time2))
+
+pairs(time3[ , c(1,9,10,11,12)],labels=c("C:N","% Moisture", "SDI", "ISD (stems/m^2", "Cumulative Avg Shoot height (cm)"),
+     panel=function(x,y){panel.smooth(x,y) 
+     abline(lsfit(x,y),lty=2) })
+
+round(cor(time3[ , c(1,9,10,11,12)],4)
+library(biotools)
+multcor.test(cor(time3[ , c(1,9,10,11,12)]), n=nrow(time3))
+
+```
+
+# Investigate one-way ANOVA at each sampling time to see if a planted richness relationship exists.
+
+lm.time1 <- lm(cn~r, data=time1)
+summary(lm.time1)
+anova(lm.time1)
+
+lm.time2 <- lm(cn~r, data=time2)
+summary(lm.time2)
+anova(lm.time2)
+
+lm.time3 <- lm(cn~r, data=time3)
+summary(lm.time3)
+anova(lm.time3)
+
+No relationship is significant. However, sampling period 1 has a fairly clear trend that may be worth closer examination, or at least mention. Why might early season foliar C:N be more affected by planted richness? There is a positive C:N planted richness relationship here, though insignificant, but 

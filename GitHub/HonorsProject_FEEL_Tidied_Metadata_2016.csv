@@ -1,4 +1,4 @@
-Variable (Abbv.),Expanded,Calculation,Explanation,Observer / Calculator
+Label,Expanded,Calculation,Explanation,Observer / Calculator
 cn,Carbon:Nitrogen Molar Ratio,(ptc (%) * dweight (g) / Carbon Molar Mass (12.01 g/mol)) / (ptn (%) * dweight (g) / Nitrogen Molar Mass (14.01 g/mol)),C:N is the primary response variable of interest for both leaves and total aboveground tissue. Masses were converted to molar ratios because of conventions used in Sterner & Elser (2002).  ,JH
 ptc,Percent Total Carbon by Mass (%),Carbon Mass (g) / dweight (g),Leaves and biomass ,ISU Soil and Plant Analysis Lab
 ptn,Percent Total Nitrogen by Mass (%),Nitrogen Mass (g) / Total Leaf Mass (g),,ISU Soil and Plant Analysis Lab
@@ -8,9 +8,9 @@ plot,Plot Number ,n/a,,JH
 wweight,Hydrated Leaf Mass (g) ,n/a,,JH
 dweight,Dehydrated Leaf Mass (g),n/a,,ISU Soil and Plant Analysis Lab
 pmoist,Percent Leaf Moisture (%),(wweight - dweight) (g) / wweight (g),,JH
-sdi,Simpson's Diversity Index,?(number of individuals of plant species a / number of individuals of all plant species)^2,,JH
-isd,Initial Cup Plant Stem Density (stems/m^2),Total Number of Cup Plant Stems in a Plot / Plot Area (2 m^2),,JH
-cheight,Cumulative Average Height per Cup Plant Stem (cm/stem),?(heights of each randomly sampled Cup Plant stem (1-10)) / number of stems (10) ,,JH
-fheight,First Sampling Group Average Height per Cup Plant Stem (cm/stem),?(heights of each randomly sampled Cup Plant stem (1-3) in first leaf sampling period) / number of stems (3) ,,JH
-sheight,Second Sampling Group Average Height per Cup Plant Stem (cm/stem),?(heights of each randomly sampled Cup Plant stem (1-3) in second leaf sampling period) / number of stems (3) ,,JH
-theight,Third Sampling Group Average Height per Cup Plant Stem (cm/stem),?(heights of each randomly sampled Cup Plant stem (1-3) in third leaf sampling period) / number of stems (3) ,,JH
+sdi,Simpson's Diversity Index,sum((number of individuals of plant species a / number of individuals of all plant species)^2),,JH
+isd,Initial Cup Plant Stem Density (stems/m^2),Total Number of Cup Plant Stems in a Plot / Plot Area (4 m^2),,JH
+cheight,Cumulative Average Height per Cup Plant Stem (cm/stem),sum((heights of each randomly sampled Cup Plant stem (1-10)) / number of stems (10) ),,JH
+fheight,First Sampling Group Average Height per Cup Plant Stem (cm/stem),sum((heights of each randomly sampled Cup Plant stem (1-3) in first leaf sampling period) / number of stems (3)) ,,JH
+sheight,Second Sampling Group Average Height per Cup Plant Stem (cm/stem),sum((heights of each randomly sampled Cup Plant stem (1-3) in second leaf sampling period) / number of stems (3)) ,,JH
+theight,Third Sampling Group Average Height per Cup Plant Stem (cm/stem),sum((heights of each randomly sampled Cup Plant stem (1-3) in third leaf sampling period) / number of stems (3)) ,,JH
